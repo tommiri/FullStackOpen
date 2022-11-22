@@ -28,7 +28,7 @@ const Total = ({ courseParts }) => {
   return <p>Number of exercises: {exercisesSum}</p>;
 };
 
-const App = () => {
+const CourseDetails = () => {
   const course = {
     name: "Half Stack application development",
     parts: [
@@ -56,4 +56,4 @@ const App = () => {
   );
 };
 
-export default App;
+export default CourseDetails;
