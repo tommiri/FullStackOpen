@@ -1,6 +1,6 @@
-# fly.toml file generated for throbbing-sky-4417 on 2022-11-23T20:37:30+02:00
+# fly.toml file generated for solitary-darkness-7640 on 2022-11-25T00:19:42+02:00
 
-app = "throbbing-sky-4417"
+app = "solitary-darkness-7640"
 kill_signal = "SIGINT"
 kill_timeout = 5
 processes = []
