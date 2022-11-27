@@ -2,4 +2,4 @@
 
 ### Deployed at
 
-https://solitary-darkness-7640.fly.dev/
+https://phonebook-tommi.fly.dev/

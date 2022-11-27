@@ -59,14 +59,26 @@ const Phonebook = () => {
       number: newNumber,
     };
 
-    peopleService.create(person).then((returnedPerson) => {
-      setPeople(people.concat(returnedPerson));
-      setNewName('');
-      setNewNumber('');
+    peopleService
+      .create(person)
+      .then((returnedPerson) => {
+        setPeople(people.concat(returnedPerson));
+        setNewName('');
+        setNewNumber('');
 
-      setMessage(`Added ${returnedPerson.name}`);
-      setTimeout(() => setMessage(null), 3000);
-    });
+        setMessage(`Added ${returnedPerson.name}`);
+        setTimeout(() => setMessage(null), 3000);
+      })
+      .catch((error) => {
+        const errorMsg = error.response.data.error;
+        console.error(errorMsg);
+        setError(true);
+        setMessage(errorMsg);
+        setTimeout(() => {
+          setMessage(null);
+          setError(false);
+        }, 5000);
+      });
   };
 
   const validatePerson = () => {
@@ -121,7 +133,12 @@ const Phonebook = () => {
         );
         setTimeout(() => setMessage(null), 3000);
       })
-      .catch(() => handleRemovedPerson(changedPerson));
+      .catch((error) => {
+        const errorMsg = error.response.data.error;
+        console.log(error);
+        console.error(errorMsg);
+        handleRemovedPerson(changedPerson);
+      });
   };
 
   const deletePerson = (id) => {

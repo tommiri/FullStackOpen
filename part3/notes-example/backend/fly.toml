@@ -1,6 +1,6 @@
-# fly.toml file generated for crimson-field-9982 on 2022-11-23T19:16:06+02:00
+# fly.toml file generated for fsopen-notes on 2022-11-27T20:37:01+02:00
 
-app = "crimson-field-9982"
+app = "fsopen-notes"
 kill_signal = "SIGINT"
 kill_timeout = 5
 processes = []

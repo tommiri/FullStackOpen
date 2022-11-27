@@ -1,94 +1,89 @@
+require('dotenv').config();
 const express = require('express');
+const morgan = require('morgan');
 const cors = require('cors');
+
+const Note = require('./models/note');
+
 const app = express();
 
 app.use(cors());
-app.use(express.json());
 app.use(express.static('build'));
+app.use(express.json());
 
-const requestLogger = (req, res, next) => {
-  console.log('Method:', req.method);
-  console.log('Path:  ', req.method);
-  console.log('Body:  ', req.body);
-  console.log('---');
-  next();
-};
+morgan.token('body', (req) => {
+  const bodyLength = Object.keys(req.body).length;
+  if (bodyLength === 0) {
+    return '';
+  }
+  return JSON.stringify(req.body);
+});
 
-app.use(requestLogger);
-
-let notes = [
-  {
-    id: 1,
-    content: 'HTML is easy',
-    date: '2022-01-10T17:30:31.098Z',
-    important: true,
-  },
-  {
-    id: 2,
-    content: 'Browser can execute only Javascript',
-    date: '2022-01-10T18:39:34.091Z',
-    important: false,
-  },
-  {
-    id: 3,
-    content:
-      'GET and POST are the most important methods of HTTP protocol',
-    date: '2022-01-10T19:20:14.298Z',
-    important: true,
-  },
-];
-
-const generateId = () => {
-  const maxId =
-    notes.length > 0 ? Math.max(...notes.map((n) => n.id)) : 0;
-  return maxId + 1;
-};
+app.use(
+  morgan(
+    ':method :url :status :res[content-length] - :response-time ms :body'
+  )
+);
 
 app.get('/', (req, res) => {
   res.send('<h1>Hello World!</h1>');
 });
 
 app.get('/api/notes', (req, res) => {
-  res.json(notes);
+  Note.find({}).then((notes) => {
+    res.json(notes);
+  });
 });
 
-app.get('/api/notes/:id', (req, res) => {
-  const id = Number(req.params.id);
-  const note = notes.find((note) => note.id === id);
-
-  if (note) {
-    res.json(note);
-  } else {
-    res.status(404).end();
-  }
+app.get('/api/notes/:id', (req, res, next) => {
+  Note.findById(req.params.id)
+    .then((note) => {
+      if (note) {
+        res.json(note);
+      } else {
+        res.status(404).end();
+      }
+    })
+    .catch((error) => next(error));
 });
 
-app.post('/api/notes', (req, res) => {
+app.post('/api/notes', (req, res, next) => {
   const body = req.body;
 
-  if (!body.content) {
-    return res.status(400).json({
-      error: 'content missing',
-    });
-  }
-
-  const note = {
+  const note = new Note({
     content: body.content,
     important: body.important || false,
     date: new Date(),
-    id: generateId(),
-  };
+  });
 
-  notes = notes.concat(note);
-
-  res.json(note);
+  note
+    .save()
+    .then((savedNote) => {
+      res.json(savedNote);
+    })
+    .catch((error) => next(error));
 });
 
-app.delete('/api/notes/:id', (req, res) => {
-  const id = Number(req.params.id);
-  notes = notes.filter((note) => note.id !== id);
+app.put('/api/notes/:id', (req, res, next) => {
+  const { content, important } = req.body;
 
-  res.status(204).end();
+  Note.findByIdAndUpdate(
+    req.params.id,
+    { content, important },
+    { new: true, runValidators: true, context: 'query' }
+  )
+    .then((updatedNote) => {
+      res.json(updatedNote);
+    })
+    .catch((error) => next(error));
+});
+
+app.delete('/api/notes/:id', (req, res, next) => {
+  Note.findByIdAndRemove(req.params.id)
+    .then(() => {
+      res.status(204).end();
+    })
+    .catch((error) => next(error));
 });
 
 const unknownEndpoint = (req, res) => {
@@ -97,7 +92,21 @@ const unknownEndpoint = (req, res) => {
 
 app.use(unknownEndpoint);
 
-const PORT = process.env.PORT || 3001;
+const errorHandler = (error, req, res, next) => {
+  console.error(error.message);
+
+  if (error.name === 'CastError') {
+    return res.status(400).send({ error: 'malformatted id' });
+  } else if (error.name === 'ValidationError') {
+    return res.status(400).json({ error: error.message });
+  }
+
+  next(error);
+};
+
+app.use(errorHandler);
+
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
