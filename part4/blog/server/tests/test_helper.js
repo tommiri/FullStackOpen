@@ -1,6 +1,6 @@
-const { favoriteBlog } = require('../utils/list_helper');
+const Blog = require('../models/blog');
 
-const blogs = [
+const initialBlogs = [
   {
     _id: '5a422a851b54a676234d17f7',
     title: 'React patterns',
@@ -51,8 +51,25 @@ const blogs = [
   },
 ];
 
-describe('Favourite blog is', () => {
-  test('equal to the one with the most likes', () => {
-    expect(favoriteBlog(blogs)).toEqual(blogs[2]);
+const nonExistingId = async () => {
+  const blog = new Blog({
+    title: 'temp',
+    author: 'temp',
+    url: 'temp',
   });
-});
+  await blog.save();
+  await blog.remove();
+
+  return blog._id.toString();
+};
+
+const blogsInDb = async () => {
+  const blogs = await Blog.find({});
+  return blogs.map((blog) => blog.toJSON());
+};
+
+module.exports = {
+  initialBlogs,
+  nonExistingId,
+  blogsInDb,
+};

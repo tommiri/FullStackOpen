@@ -1,4 +1,4 @@
-const reverse = require('../utils/for_testing').reverse;
+const { reverse } = require('../utils/for_testing');
 
 test('Reverse of a', () => {
   const result = reverse('a');
