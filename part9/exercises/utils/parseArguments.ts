@@ -3,14 +3,18 @@ export const parseNumArguments = (
   minArgs: number,
   maxArgs?: number
 ): number[] => {
-  args.splice(0, 2); // remove commands
+  args.splice(
+    // Remove commands from args
+    0,
+    args.findIndex((arg) => !isNaN(Number(arg)))
+  );
 
   if (args.length < minArgs) throw new Error('Not enough arguments!');
   if (maxArgs) {
     if (args.length > maxArgs) throw new Error('Too many arguments!');
   }
 
-  let parsedArgs: number[] = [];
+  const parsedArgs: number[] = [];
 
   args.forEach((arg) => {
     if (isNaN(Number(arg)))
