@@ -1,15 +1,21 @@
 import { SyntheticEvent, useEffect, useState } from 'react';
+
+import { DiaryEntry, Visibility, Weather } from './types';
+import { getAllEntries, createEntry } from './services/diaryService';
+
 import DiaryList from './components/DiaryList';
-import { DiaryEntry } from './types';
-import { getAllEntries } from './services/diaryService';
-import { createEntry } from './services/diaryService';
 import Notification from './components/Notification';
+import Radio from './components/Radio';
 
 const App = () => {
   const [entries, setEntries] = useState<DiaryEntry[]>([]);
   const [newDate, setNewDate] = useState('');
-  const [newVisibility, setNewVisibility] = useState('');
-  const [newWeather, setNewWeather] = useState('');
+  const [newVisibility, setNewVisibility] = useState<Visibility>(
+    Visibility.Great
+  );
+  const [newWeather, setNewWeather] = useState<Weather>(
+    Weather.Sunny
+  );
   const [newComment, setNewComment] = useState('');
   const [hasError, setHasError] = useState(false);
   const [message, setMessage] = useState('');
@@ -45,8 +51,8 @@ const App = () => {
       setHasError(false);
       setEntries(entries.concat(data));
       setNewDate('');
-      setNewVisibility('');
-      setNewWeather('');
+      setNewVisibility(Visibility.Great);
+      setNewWeather(Weather.Sunny);
       setNewComment('');
       setMessage('Successfully created new entry!');
       setTimeout(() => setMessage(''), 3000);
@@ -66,28 +72,77 @@ const App = () => {
       <Notification message={message} error={hasError} />
       <form onSubmit={entryCreation}>
         <div>
-          Date
+          Date:
           <input
+            type="date"
             value={newDate}
             onChange={(e) => setNewDate(e.target.value)}
           />
         </div>
         <div>
-          Visibility
-          <input
+          Visibility:
+          <Radio
+            label="Great"
+            name="visibility"
             value={newVisibility}
-            onChange={(e) => setNewVisibility(e.target.value)}
+            onChange={() => setNewVisibility(Visibility.Great)}
+            checked
+          />
+          <Radio
+            label="Good"
+            name="visibility"
+            value={newVisibility}
+            onChange={() => setNewVisibility(Visibility.Good)}
+          />
+          <Radio
+            label="Ok"
+            name="visibility"
+            value={newVisibility}
+            onChange={() => setNewVisibility(Visibility.Ok)}
+          />
+          <Radio
+            label="Poor"
+            name="visibility"
+            value={newVisibility}
+            onChange={() => setNewVisibility(Visibility.Poor)}
           />
         </div>
         <div>
-          Weather
-          <input
+          Weather:
+          <Radio
+            label="Sunny"
+            name="Weather"
             value={newWeather}
-            onChange={(e) => setNewWeather(e.target.value)}
+            onChange={() => setNewWeather(Weather.Sunny)}
+            checked
+          />
+          <Radio
+            label="Rainy"
+            name="Weather"
+            value={newWeather}
+            onChange={() => setNewWeather(Weather.Rainy)}
+          />
+          <Radio
+            label="Cloudy"
+            name="Weather"
+            value={newWeather}
+            onChange={() => setNewWeather(Weather.Cloudy)}
+          />
+          <Radio
+            label="Stormy"
+            name="Weather"
+            value={newWeather}
+            onChange={() => setNewWeather(Weather.Stormy)}
+          />
+          <Radio
+            label="Windy"
+            name="Weather"
+            value={newWeather}
+            onChange={() => setNewWeather(Weather.Windy)}
           />
         </div>
         <div>
-          Comment
+          Comment:
           <input
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
