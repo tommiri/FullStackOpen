@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState, SyntheticEvent } from 'react';
 import { Note } from './types';
 import { getAllNotes, createNote } from './noteService';
 
@@ -12,7 +12,7 @@ const App = () => {
     });
   });
 
-  const noteCreation = (e: React.SyntheticEvent) => {
+  const noteCreation = (e: SyntheticEvent) => {
     e.preventDefault();
     createNote({ content: newNote }).then((data) => {
       setNotes(notes.concat(data));
