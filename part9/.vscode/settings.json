@@ -1,0 +1,10 @@
+{
+  "eslint.workingDirectories": [
+    "./exercises/courses",
+    "./exercises/first_steps",
+    "./exercises/flight-diary/backend",
+    "./exercises/flight-diary/frontend",
+    "./exercises/patientor/frontend",
+    "./exercises/patientor/frontend"
+  ]
+}
