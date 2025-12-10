@@ -1,49 +1,74 @@
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
+const logger = require("./logger");
+const User = require("../models/user");
 
-const logger = require('./logger');
-
-const unknownEndpoint = (req, res) => {
-  res.status(404).send({ error: 'Unknown endpoint' });
+const requestLogger = (request, response, next) => {
+  logger.info("Method:", request.method);
+  logger.info("Path:  ", request.path);
+  logger.info("Body:  ", request.body);
+  logger.info("---");
+  next();
 };
 
-const tokenExtractor = (req, res, next) => {
-  const authorization = req.get('authorization');
-  if (authorization && authorization.startsWith('Bearer ')) {
-    req.token = authorization.replace('Bearer ', '');
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: "unknown endpoint" });
+};
+
+const errorHandler = (error, request, response, next) => {
+  logger.error(error.message);
+
+  if (error.name === "CastError") {
+    return response.status(400).send({ error: "malformatted id" });
+  } else if (error.name === "ValidationError") {
+    return response.status(400).json({ error: error.message });
+  } else if (
+    error.name === "MongoServerError" &&
+    error.message.includes("E11000 duplicate key error")
+  ) {
+    return response
+      .status(400)
+      .json({ error: "expeceted username to be unique" });
+  } else if (error.name === "JsonWebTokenError") {
+    return response.status(401).json({ error: "token missing or invalid" });
+  }
+
+  next(error);
+};
+
+const tokenExtractor = (request, response, next) => {
+  request.token = null;
+  const authorization = request.get("authorization");
+
+  if (authorization && authorization.startsWith("Bearer ")) {
+    request.token = authorization.replace("Bearer ", "");
   }
 
   next();
 };
 
-const userExtractor = (req, res, next) => {
-  if (!req.token) {
-    throw new jwt.JsonWebTokenError('Token missing or invalid');
+const userExtractor = async (request, response, next) => {
+  if (!request.token) {
+    return response.status(401).json({ error: "token missimg" });
   }
 
-  const decodedToken = jwt.verify(req.token, process.env.SECRET);
-  req.user = decodedToken;
+  const decodedToken = jwt.verify(request.token, process.env.SECRET);
+
+  if (!decodedToken.id) {
+    return response.status(401).json({ error: "token invalid" });
+  }
+
+  const user = await User.findById(decodedToken.id);
+
+  if (!user) {
+    return response.status(401).json({ error: "user not found" });
+  }
+
+  request.user = user;
   next();
-};
-
-const errorHandler = (err, req, res, next) => {
-  logger.error(err.message);
-
-  if (err.name === 'CastError') {
-    return res.status(400).send({ error: 'Malformatted ID' });
-  } else if (err.name === 'ValidationError') {
-    return res.status(400).json({ error: err.message });
-  } else if (err.name === 'JsonWebTokenError') {
-    return res
-      .status(401)
-      .json({ error: 'Token missing or invalid' });
-  } else if (err.name === 'TokenExpiredError') {
-    return res.status(401).json({ error: 'Token expired' });
-  }
-
-  next(err);
 };
 
 module.exports = {
+  requestLogger,
   unknownEndpoint,
   errorHandler,
   tokenExtractor,

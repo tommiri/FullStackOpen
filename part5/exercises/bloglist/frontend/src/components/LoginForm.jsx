@@ -8,22 +8,24 @@ const LoginForm = ({
   return (
     <form onSubmit={onSubmit}>
       <div>
-        Username
-        <input
-          type="text"
-          value={username}
-          name="Username"
-          onChange={({ target }) => setUsername(target.value)}
-        />
+        <label>
+          Username
+          <input
+            type="text"
+            value={username}
+            onChange={({ target }) => setUsername(target.value)}
+          />
+        </label>
       </div>
       <div>
-        Password
-        <input
-          type="password"
-          value={password}
-          name="Password"
-          onChange={({ target }) => setPassword(target.value)}
-        />
+        <label>
+          Password
+          <input
+            type="password"
+            value={password}
+            onChange={({ target }) => setPassword(target.value)}
+          />
+        </label>
       </div>
       <button type="submit">LOGIN</button>
     </form>

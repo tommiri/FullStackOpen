@@ -1,38 +1,23 @@
 {
-  "name": "blog-server",
+  "name": "backend",
   "version": "0.0.1",
-  "description": "",
   "main": "index.js",
   "scripts": {
     "start": "cross-env NODE_ENV=production node index.js",
-    "dev": "cross-env NODE_ENV=development nodemon index.js",
-    "build:ui": "rm -rf build && cd ../client && npm run build && cp -r build ../server",
-    "lint": "eslint .",
-    "test": "cross-env NODE_ENV=test jest --verbose --runInBand"
+    "dev": "cross-env NODE_ENV=development node --watch index.js",
+    "test": "cross-env NODE_ENV=test node --test"
   },
-  "author": "Tommi Riiheläinen",
-  "license": "MIT",
+  "author": "",
+  "license": "ISC",
+  "description": "",
   "dependencies": {
-    "bcryptjs": "^2.4.3",
-    "cors": "^2.8.5",
-    "dotenv": "^16.0.3",
-    "express": "^4.18.2",
-    "express-async-errors": "^3.1.1",
-    "jsonwebtoken": "^9.0.0",
-    "lodash": "^4.17.21",
-    "mongoose": "^6.8.0",
-    "mongoose-unique-validator": "^3.1.0"
-  },
-  "devDependencies": {
-    "@types/jest": "^29.2.4",
+    "bcrypt": "^6.0.0",
     "cross-env": "^7.0.3",
-    "eslint": "^8.37.0",
-    "jest": "^29.3.1",
-    "nodemon": "^2.0.20",
-    "supertest": "^6.3.3"
-  },
-  "jest": {
-    "testEnvironment": "node",
-    "globalTeardown": "./tests/teardown.js"
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-async-errors": "^3.1.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.12.1",
+    "supertest": "^7.1.0"
   }
 }

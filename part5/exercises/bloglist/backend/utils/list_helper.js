@@ -1,52 +1,70 @@
-const _ = require('lodash');
-
 const dummy = (blogs) => {
   return 1;
 };
 
-const getTotalLikes = (blogs) => {
-  const likes = blogs.reduce((sum, blog) => {
-    return sum + blog?.likes;
-  }, 0);
-
-  return likes;
+const totalLikes = (blogs) => {
+  return blogs.reduce((sum, blog) => sum + blog.likes, 0);
 };
 
-const getFavoriteBlog = (blogs) => {
-  const favorite = blogs.reduce((mostLikes, current) =>
-    mostLikes.likes > current.likes ? mostLikes : current
+const favoriteBlog = (blogs) => {
+  return blogs.reduce(
+    (favorite, blog) => (favorite.likes > blog.likes ? favorite : blog),
+    {}
   );
-
-  return favorite;
 };
 
-const getMostBlogs = (blogs) => {
-  const groupedByAuthor = _.groupBy(blogs, 'author');
-  const mostBlogs = _.reduce(groupedByAuthor, (leader, current) => {
-    return leader?.length > current?.length ? leader : current;
-  });
+const mostBlogs = (blogs) => {
+  if (!blogs.length) {
+    return null;
+  }
 
-  return { author: mostBlogs[0]?.author, blogs: mostBlogs?.length };
-};
+  const blogsPerAuthor = blogs.reduce((acc, blog) => {
+    acc[blog.author] = (acc[blog.author] || 0) + 1;
+    return acc;
+  }, {});
 
-const getMostLikes = (blogs) => {
-  const groupedByAuthor = _.groupBy(blogs, 'author');
-  const mostLikes = _.reduce(groupedByAuthor, (leader, current) => {
-    return getTotalLikes(leader) > getTotalLikes(current)
-      ? leader
-      : current;
-  });
+  let maxAuthor = Object.keys(blogsPerAuthor)[0];
+
+  for (const author in blogsPerAuthor) {
+    if (blogsPerAuthor[author] > blogsPerAuthor[maxAuthor]) {
+      maxAuthor = author;
+    }
+  }
 
   return {
-    author: mostLikes[0]?.author,
-    likes: getTotalLikes(mostLikes),
+    author: maxAuthor,
+    blogs: blogsPerAuthor[maxAuthor],
+  };
+};
+
+const mostLikes = (blogs) => {
+  if (!blogs.length) {
+    return null;
+  }
+
+  const likesPerAuthor = blogs.reduce((acc, blog) => {
+    acc[blog.author] = (acc[blog.author] || 0) + blog.likes;
+    return acc;
+  }, {});
+
+  let maxAuthor = Object.keys(likesPerAuthor)[0];
+
+  for (const author in likesPerAuthor) {
+    if (likesPerAuthor[author] > likesPerAuthor[maxAuthor]) {
+      maxAuthor = author;
+    }
+  }
+
+  return {
+    author: maxAuthor,
+    likes: likesPerAuthor[maxAuthor],
   };
 };
 
 module.exports = {
   dummy,
-  getTotalLikes,
-  getFavoriteBlog,
-  getMostLikes,
-  getMostBlogs,
+  favoriteBlog,
+  mostBlogs,
+  mostLikes,
+  totalLikes,
 };

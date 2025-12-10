@@ -1,93 +1,69 @@
-const blogsRouter = require('express').Router();
-const {
-  tokenExtractor,
-  userExtractor,
-} = require('../utils/middleware');
+const Blog = require("../models/blog");
+const blogsRouter = require("express").Router();
+const { userExtractor } = require("../utils/middleware");
 
-const Blog = require('../models/blog');
-const User = require('../models/user');
-
-blogsRouter.get('/', async (req, res) => {
-  const blogs = await Blog.find({}).populate('user', {
-    username: 1,
-    name: 1,
-  });
-  res.json(blogs);
-});
-
-blogsRouter.get('/:id', async (req, res) => {
-  const blog = await Blog.findById(req.params.id);
-  if (blog) {
-    res.json(blog);
-  } else {
-    res.status(404).end();
-  }
-});
-
-blogsRouter.post(
-  '/',
-  tokenExtractor,
-  userExtractor,
-  async (req, res) => {
-    const body = req.body;
-
-    const user = await User.findById(req.user.id);
-
-    const blog = new Blog({
-      title: body.title,
-      author: body.author,
-      url: body.url,
-      user: user.id,
-      likes: body.likes || 0,
+blogsRouter.get("/", (request, response) => {
+  Blog.find({})
+    .populate("user", { username: 1, name: 1, id: 1 })
+    .then((blogs) => {
+      response.json(blogs);
     });
+});
 
-    const savedBlog = await blog.save();
-    user.blogs = user.blogs.concat(savedBlog._id);
-    await user.save();
+blogsRouter.post("/", userExtractor, async (request, response) => {
+  const user = request.user;
+  const blog = new Blog(request.body);
 
-    res.status(201).json(savedBlog);
+  blog.likes = blog.likes | 0;
+  blog.user = user._id;
+
+  if (!blog.title || !blog.url) {
+    return response.status(400).send({ error: "title or url missing" });
   }
-);
 
-blogsRouter.patch(
-  '/:id',
-  tokenExtractor,
-  userExtractor,
-  async (req, res) => {
-    const blogToUpdate = await Blog.findById(req.params.id);
-    const originalPosterId = blogToUpdate.user.toString();
+  user.blogs = user.blogs.concat(blog._id);
+  await user.save();
 
-    if (req.user.id !== originalPosterId) {
-      return res.status(401).json({ error: 'Invalid user' });
-    }
+  const savedBlog = await blog.save();
 
-    const { title, author, url, likes } = req.body;
+  response.status(201).json(savedBlog);
+});
 
-    const updatedBlog = await Blog.findByIdAndUpdate(
-      req.params.id,
-      { title, author, url, likes },
-      { new: true, runValidators: true, context: 'query' }
-    );
+blogsRouter.delete("/:id", userExtractor, async (request, response) => {
+  const user = request.user;
+  const blog = await Blog.findById(request.params.id);
 
-    res.json({ updated: updatedBlog });
+  if (!blog) {
+    return response.status(204).end();
   }
-);
 
-blogsRouter.delete(
-  '/:id',
-  tokenExtractor,
-  userExtractor,
-  async (req, res) => {
-    const blogToDelete = await Blog.findById(req.params.id);
-    const originalPosterId = blogToDelete.user.toString();
-
-    if (req.user.id !== originalPosterId) {
-      return res.status(401).json({ error: 'Invalid user' });
-    }
-
-    await Blog.findByIdAndDelete(req.params.id);
-    res.status(200).json({ deleted: blogToDelete });
+  if (user.id.toString() !== blog.user.toString()) {
+    return response.status(403).json({ error: "user not authorized" });
   }
-);
+
+  user.blogs = user.blogs.filter((b) => b.id.toString() !== blog.id.toString());
+
+  await blog.deleteOne();
+  response.status(204).end();
+});
+
+blogsRouter.put("/:id", async (request, response) => {
+  const { title, author, url, likes } = request.body;
+
+  const blog = await Blog.findById(request.params.id);
+
+  if (!blog) {
+    return response.status(404).end();
+  }
+
+  blog.title = title;
+  blog.author = author;
+  blog.url = url;
+  blog.likes = likes;
+
+  const updatedBlog = await blog.save();
+
+  response.json(updatedBlog);
+});
 
 module.exports = blogsRouter;
