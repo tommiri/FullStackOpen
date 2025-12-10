@@ -62,6 +62,7 @@ const toNewPatient = (object: unknown): NewPatient => {
         object.occupation,
         'occupation'
       ),
+      entries: [], // add empty array of entries
     };
     return newPatient;
   }
