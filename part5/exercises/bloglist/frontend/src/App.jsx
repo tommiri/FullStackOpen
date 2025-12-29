@@ -1,29 +1,38 @@
-import { useState, useEffect } from "react";
-import Blog from "./components/Blog";
-import blogService from "./services/blogs";
-import loginService from "./services/login";
-import LoginForm from "./components/LoginForm";
-import NewBlogForm from "./components/NewBlogForm";
-import Notification from "./components/Notification";
+import { useState, useEffect, useRef, useMemo } from 'react';
+
+import blogService from './services/blogs';
+import loginService from './services/login';
+
+import Blog from './components/Blog';
+import LoginForm from './components/LoginForm';
+import BlogForm from './components/BlogForm';
+import Notification from './components/Notification';
+import Togglable from './components/Togglable';
 
 const App = () => {
   const [blogs, setBlogs] = useState([]);
   const [message, setMessage] = useState(null);
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [user, setUser] = useState(null);
   const [hasError, setHasError] = useState(false);
 
+  const blogFormRef = useRef();
+
+  const sortedBlogs = useMemo(() => {
+    return [...blogs].sort((a, b) => b.likes - a.likes);
+  }, [blogs]);
+
   useEffect(() => {
     const getBlogs = async () => {
-      const blogs = await blogService.getAll();
-      setBlogs(blogs);
+      const blogData = await blogService.getAll();
+      setBlogs(blogData);
     };
     getBlogs();
   }, []);
 
   useEffect(() => {
-    const loggedInUserJSON = window.localStorage.getItem("loggedInBlogAppUser");
+    const loggedInUserJSON = window.localStorage.getItem('loggedInBlogAppUser');
     if (loggedInUserJSON) {
       const user = JSON.parse(loggedInUserJSON);
       setUser(user);
@@ -40,16 +49,16 @@ const App = () => {
         password,
       });
 
+      setHasError(false);
       blogService.setToken(user.token);
-
-      window.localStorage.setItem("loggedInBlogAppUser", JSON.stringify(user));
-
+      window.localStorage.setItem('loggedInBlogAppUser', JSON.stringify(user));
       setUser(user);
-      setUsername("");
-      setPassword("");
+      setUsername('');
+      setPassword('');
+      // eslint-disable-next-line no-unused-vars
     } catch (error) {
       setHasError(true);
-      setMessage("Incorrect credentials");
+      setMessage('Error: incorrect credentials');
       setTimeout(() => {
         setMessage(null);
       }, 3000);
@@ -60,21 +69,60 @@ const App = () => {
     e.preventDefault();
 
     setUser(null);
-    window.localStorage.removeItem("loggedInBlogAppUser");
+    window.localStorage.removeItem('loggedInBlogAppUser');
   };
 
-  const createBlogpost = async (blogData) => {
+  const createBlog = async (blogData) => {
     try {
-      const response = await blogService.create(blogData);
-      if (response) {
-        setBlogs(blogs.concat(response));
-        setHasError(false);
-        setMessage(`New blog added: "${blogData.title}" by ${blogData.author}`);
-        setTimeout(() => setMessage(null), 3000);
-      }
+      const newBlog = await blogService.create(blogData);
+      blogFormRef.current.toggleVisibility();
+
+      setBlogs([...blogs, { ...newBlog, user: user }]);
+
+      setHasError(false);
+      setMessage(`New blog added: "${blogData.title}" by ${blogData.author}`);
+      setTimeout(() => setMessage(null), 3000);
+      // eslint-disable-next-line no-unused-vars
     } catch (error) {
       setHasError(true);
-      setMessage("Failed to create blogpost");
+      setMessage("Error: couldn't create new blogpost");
+      setTimeout(() => {
+        setMessage(null);
+      }, 3000);
+    }
+  };
+
+  const updateBlog = async (blogData) => {
+    try {
+      const response = await blogService.update(blogData);
+      const updatedBlog = {
+        ...response,
+        user: blogData.user,
+      };
+
+      setBlogs(
+        blogs.map((blog) => (blog.id === updatedBlog.id ? updatedBlog : blog))
+      );
+      setHasError(false);
+      // eslint-disable-next-line no-unused-vars
+    } catch (error) {
+      setHasError(true);
+      setMessage("Error: couldn't update blogpost");
+      setTimeout(() => {
+        setMessage(null);
+      }, 3000);
+    }
+  };
+
+  const deleteBlog = async (blogData) => {
+    try {
+      await blogService.remove(blogData);
+      setBlogs(blogs.filter((b) => b.id !== blogData.id));
+      setHasError(false);
+      // eslint-disable-next-line no-unused-vars
+    } catch (error) {
+      setHasError(true);
+      setMessage("Error: couldn't delete blogpost");
       setTimeout(() => {
         setMessage(null);
       }, 3000);
@@ -104,9 +152,17 @@ const App = () => {
             {user.name} logged in
             <button onClick={handleLogout}>logout</button>
           </p>
-          <NewBlogForm onSubmit={createBlogpost}></NewBlogForm>
-          {blogs.map((blog) => (
-            <Blog key={blog.id} blog={blog} />
+          <Togglable buttonLabel="create new blog" ref={blogFormRef}>
+            <BlogForm createBlog={createBlog}></BlogForm>
+          </Togglable>
+          {sortedBlogs.map((blog) => (
+            <Blog
+              key={blog.id}
+              blog={blog}
+              updateBlog={updateBlog}
+              deleteBlog={deleteBlog}
+              currentUser={user}
+            />
           ))}
         </>
       )}
