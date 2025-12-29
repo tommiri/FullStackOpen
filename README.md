@@ -12,11 +12,11 @@
 
 ### In progress
 
+- [Part 5 - Testing React apps](https://fullstackopen.com/en/part5)
 - [Part 9 - TypeScript](https://fullstackopen.com/en/part9)
 
 ### Not started
 
-- [Part 5 - Testing React apps](https://fullstackopen.com/en/part5)
 - [Part 6 - State management with Redux](https://fullstackopen.com/en/part6)
 - [Part 7 - React router, custom hooks, styling app with CSS and webpack](https://fullstackopen.com/en/part7)
 - [Part 8 - GraphQL](https://fullstackopen.com/en/part8)
