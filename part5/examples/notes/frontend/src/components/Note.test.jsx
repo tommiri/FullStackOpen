@@ -18,7 +18,7 @@ test('renders content', () => {
   expect(element).toBeDefined()
 })
 
-test('clicking the button calls even handler once', async () => {
+test('clicking the button calls event handler once', async () => {
   const note = {
     content: 'Component testing is done with react-testing-library',
     important: true,

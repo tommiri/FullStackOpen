@@ -5,7 +5,7 @@ import loginService from './services/login';
 
 import Blog from './components/Blog';
 import LoginForm from './components/LoginForm';
-import BlogForm from './components/BlogForm';
+import NewBlogForm from './components/NewBlogForm';
 import Notification from './components/Notification';
 import Togglable from './components/Togglable';
 
@@ -153,17 +153,19 @@ const App = () => {
             <button onClick={handleLogout}>logout</button>
           </p>
           <Togglable buttonLabel="create new blog" ref={blogFormRef}>
-            <BlogForm createBlog={createBlog}></BlogForm>
+            <NewBlogForm createBlog={createBlog}></NewBlogForm>
           </Togglable>
-          {sortedBlogs.map((blog) => (
-            <Blog
-              key={blog.id}
-              blog={blog}
-              updateBlog={updateBlog}
-              deleteBlog={deleteBlog}
-              currentUser={user}
-            />
-          ))}
+          <ul style={{ listStyleType: 'none', padding: 0 }}>
+            {sortedBlogs.map((blog) => (
+              <Blog
+                key={blog.id}
+                blog={blog}
+                updateBlog={updateBlog}
+                deleteBlog={deleteBlog}
+                currentUser={user}
+              />
+            ))}
+          </ul>
         </>
       )}
     </div>

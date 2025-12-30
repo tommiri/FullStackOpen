@@ -42,10 +42,10 @@ const Blog = ({ blog, updateBlog, deleteBlog, currentUser }) => {
   };
 
   return (
-    <div style={blogStyle}>
+    <li style={blogStyle}>
       <button onClick={toggleExpanded}>{expanded ? 'hide' : 'show'}</button>
       <div style={hideWhenExpanded}>
-        <em>{blog.title}</em> by {blog.author}
+        {blog.title} by {blog.author}
       </div>
       <div style={showWhenExpanded}>
         <div>Title: {blog.title}</div>
@@ -58,7 +58,7 @@ const Blog = ({ blog, updateBlog, deleteBlog, currentUser }) => {
           <button onClick={handleUpdate}>like</button>
         </div>
         <div>User: {blog.user ? blog.user.name : 'None'}</div>
-        {blog.user
+        {currentUser && blog.user
           ? currentUser.name === blog.user.name && (
               <button onClick={handleDelete} style={{ marginTop: 10 }}>
                 delete
@@ -66,7 +66,7 @@ const Blog = ({ blog, updateBlog, deleteBlog, currentUser }) => {
             )
           : ''}
       </div>
-    </div>
+    </li>
   );
 };
 
