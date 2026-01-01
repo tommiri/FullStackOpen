@@ -26,11 +26,23 @@ const listStyle = {
 
 const AnecdoteList = () => {
   const dispatch = useDispatch()
-  const anecdotes = useSelector((state) => state)
+  const anecdotes = useSelector(({ anecdotes, filter }) => {
+    if (filter === 'ALL') {
+      return anecdotes
+    } else {
+      return anecdotes.filter(({ content }) => {
+        const normalizedContent = content.toLowerCase()
+        const normalizedFilter = filter.toLowerCase()
+
+        return normalizedContent.includes(normalizedFilter)
+      })
+    }
+  })
+  const sortedAnecdotes = [...anecdotes].sort((a, b) => b.votes - a.votes)
 
   return (
     <ul style={listStyle}>
-      {anecdotes.map((anecdote) => (
+      {sortedAnecdotes.map((anecdote) => (
         <Anecdote
           key={anecdote.id}
           anecdote={anecdote}
