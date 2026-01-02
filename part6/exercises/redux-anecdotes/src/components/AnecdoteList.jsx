@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from 'react-redux'
 import { upvoteAnecdote } from '../reducers/anecdoteReducer'
-import notify from '../utils/setNotification'
+import { notify } from '../reducers/notificationReducer'
 
 const anecdoteStyle = {
   padding: '5px',
@@ -42,7 +42,7 @@ const AnecdoteList = () => {
   const sortedAnecdotes = [...anecdotes].sort((a, b) => b.votes - a.votes)
 
   const handleUpvote = (anecdote) => {
-    dispatch(upvoteAnecdote(anecdote.id))
+    dispatch(upvoteAnecdote(anecdote))
     dispatch(notify(`You voted for '${anecdote.content}'`))
   }
 
