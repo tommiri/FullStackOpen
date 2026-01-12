@@ -1,61 +1,64 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { useSelector } from 'react-redux'
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom'
 
-import { useBlogs } from './hooks/useBlogs'
-import { useAuth } from './hooks/useAuth'
+import useBlogs from './hooks/useBlogs'
+import useUsers from './hooks/useUsers'
 
 import LoginForm from './components/LoginForm'
-import NewBlogForm from './components/NewBlogForm'
 import Notification from './components/Notification'
-import Togglable from './components/Togglable'
 import BlogList from './components/BlogList'
 import UserList from './components/UserList'
+import User from './components/User'
+import Blog from './components/Blog'
+import Navigation from './components/Navigation'
+
+const ProtectedRoute = ({ user, redirectPath = '/login' }) => {
+  if (!user) {
+    return <Navigate to={redirectPath} replace />
+  }
+
+  return <Outlet />
+}
 
 const App = () => {
   const user = useSelector(({ user }) => user)
 
   const { initializeBlogs } = useBlogs()
-  const { logout } = useAuth()
-
-  const blogFormRef = useRef()
+  const { initializeUsers } = useUsers()
 
   useEffect(() => {
-    const getBlogs = async () => {
+    const initializeResources = async () => {
       await initializeBlogs()
+      await initializeUsers()
     }
-    getBlogs()
-  }, [initializeBlogs])
-
-  const handleLogout = (e) => {
-    e.preventDefault()
-
-    logout()
-  }
+    initializeResources()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
-    <div>
-      {!user && (
-        <>
-          <h1>Log in to application</h1>
-          <Notification />
-          <LoginForm />
-        </>
-      )}
-      {user && (
-        <>
-          <h2>blogs</h2>
-          <Notification />
-          <p>
-            {user.name} logged in
-            <button onClick={handleLogout}>logout</button>
-          </p>
-          <Togglable buttonLabel="create new blog" ref={blogFormRef}>
-            <NewBlogForm blogFormRef={blogFormRef}></NewBlogForm>
-          </Togglable>
-          <BlogList />
-          <UserList />
-        </>
-      )}
+    <div className="container">
+      <Navigation user={user} />
+      <Notification />
+
+      <Routes>
+        <Route
+          path="/login"
+          element={user ? <Navigate to="/" replace /> : <LoginForm />}
+        />
+
+        <Route element={<ProtectedRoute user={user} />}>
+          <Route path="/" element={<BlogList />} />
+          <Route path="/users" element={<UserList />} />
+          <Route path="/users/:id" element={<User />} />
+          <Route path="/blogs/:id" element={<Blog user={user} />} />
+        </Route>
+
+        <Route
+          path="*"
+          element={<Navigate to={user ? '/' : '/login'} replace />}
+        />
+      </Routes>
     </div>
   )
 }

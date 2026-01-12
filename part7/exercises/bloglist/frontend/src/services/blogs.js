@@ -31,6 +31,7 @@ const update = async (itemToUpdate) => {
     itemToUpdate,
     config
   )
+
   return res.data
 }
 
@@ -43,4 +44,9 @@ const remove = async (itemToRemove) => {
   return res.data
 }
 
-export default { getAll, create, setToken, update, remove }
+const comment = async (id, content) => {
+  const res = await axios.post(`${baseUrl}/${id}/comments`, content)
+  return res.data
+}
+
+export default { getAll, create, setToken, update, remove, comment }

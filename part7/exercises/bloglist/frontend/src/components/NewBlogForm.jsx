@@ -1,6 +1,8 @@
 import { useState } from 'react'
 
-import { useBlogs } from '../hooks/useBlogs'
+import useBlogs from '../hooks/useBlogs'
+
+import { Button, Form, FloatingLabel, Row, Col } from 'react-bootstrap'
 
 const NewBlogForm = ({ blogFormRef }) => {
   const [title, setTitle] = useState('')
@@ -20,42 +22,49 @@ const NewBlogForm = ({ blogFormRef }) => {
   }
 
   return (
-    <form onSubmit={addBlog}>
-      <div>
-        <label>
-          title:
-          <input
-            type="text"
-            value={title}
-            placeholder="Title"
-            onChange={({ target }) => setTitle(target.value)}
-          />
-        </label>
-      </div>
-      <div>
-        <label>
-          author:
-          <input
-            type="text"
-            value={author}
-            placeholder="Author"
-            onChange={({ target }) => setAuthor(target.value)}
-          />
-        </label>
-      </div>
-      <div>
-        <label>
-          url:
-          <input
-            type="text"
-            value={url}
-            placeholder="URL"
-            onChange={({ target }) => setUrl(target.value)}
-          />
-        </label>
-      </div>
-      <button type="submit">create</button>
-    </form>
+    <Form onSubmit={addBlog}>
+      <Row>
+        <Col sm={3}>
+          <FloatingLabel label="Title" className="mb-2">
+            <Form.Control
+              type="text"
+              name="title"
+              value={title}
+              onChange={({ target }) => setTitle(target.value)}
+            />
+          </FloatingLabel>
+        </Col>
+        <Col sm={3}>
+          <FloatingLabel label="Author" className="mb-2">
+            <Form.Control
+              type="text"
+              name="author"
+              value={author}
+              onChange={({ target }) => setAuthor(target.value)}
+            />
+          </FloatingLabel>
+        </Col>
+      </Row>
+      <Row>
+        <Col sm={6}>
+          <FloatingLabel label="URL" className="mb-2">
+            <Form.Control
+              type="text"
+              name="url"
+              value={url}
+              onChange={({ target }) => setUrl(target.value)}
+            />
+          </FloatingLabel>
+        </Col>
+      </Row>
+      <Row>
+        <Col>
+          <Button variant="outline-success" className="mb-2" type="submit">
+            Create
+          </Button>
+        </Col>
+      </Row>
+    </Form>
   )
 }
 

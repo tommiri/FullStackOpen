@@ -1,3 +1,4 @@
+const { request } = require("express");
 const Blog = require("../models/blog");
 const blogsRouter = require("express").Router();
 const { userExtractor } = require("../utils/middleware");
@@ -66,5 +67,25 @@ blogsRouter.put("/:id", async (request, response) => {
 
   response.json(updatedBlog);
 });
+
+blogsRouter.post('/:id/comments', async (request, response) => {
+  const { content } = request.body;
+
+  const blog = await Blog.findById(request.params.id);
+
+  if (!blog) {
+    return response.status(404).end()
+  }
+  
+  if (!content || typeof content !== "string") {
+    return response.status(400).send({ error: 'comment must be a string' })
+  }
+
+  blog.comments.push(content)
+
+  const updatedBlog = await blog.save();
+
+  response.json(updatedBlog)
+})
 
 module.exports = blogsRouter;

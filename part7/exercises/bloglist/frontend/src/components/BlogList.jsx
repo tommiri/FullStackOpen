@@ -1,59 +1,50 @@
 import { useSelector } from 'react-redux'
+import { useRef } from 'react'
+import { Link } from 'react-router-dom'
 
-import { useBlogs } from '../hooks/useBlogs'
+import Togglable from './Togglable'
+import NewBlogForm from './NewBlogForm'
 
-import Blog from './Blog'
-
-const listStyle = {
-  listStyleType: 'none',
-  padding: 0,
-}
+import { Table } from 'react-bootstrap'
 
 const BlogList = () => {
   const blogs = useSelector(({ blogs }) => blogs)
-  const user = useSelector(({ user }) => user)
 
-  const { reviseBlog, removeBlog } = useBlogs()
+  const blogFormRef = useRef()
 
   if (!blogs) {
     return <div style={{ marginTop: 10 }}>Loading blogs...</div>
   }
 
-  const sortedBlogs = [...blogs].sort((a, b) => b.likes - a.likes)
+  const byLikes = (a, b) => b.likes - a.likes
 
-  const handleLike = async (blog) => {
-    const likedBlog = {
-      ...blog,
-      likes: blog.likes + 1,
-    }
-    await reviseBlog(likedBlog)
-  }
-
-  const handleDelete = async (blog) => {
-    const isConfirmed = window.confirm(
-      `Do you want to delete ${blog.title} by ${blog.author}?`
-    )
-    if (isConfirmed) {
-      await removeBlog(blog)
-    } else {
-      return
-    }
-  }
+  const sortedBlogs = [...blogs].sort(byLikes)
 
   return (
-    <ul style={listStyle}>
-      {sortedBlogs.map((blog) => {
-        return (
-          <Blog
-            key={blog.id}
-            blog={blog}
-            user={user}
-            handleLike={() => handleLike(blog)}
-            handleDelete={() => handleDelete(blog)}
-          />
-        )
-      })}
-    </ul>
+    <>
+      <h1 className="mb-3">Blogs</h1>
+      <Togglable buttonLabel="Create new blog" ref={blogFormRef}>
+        <NewBlogForm blogFormRef={blogFormRef}></NewBlogForm>
+      </Togglable>
+      <Table striped>
+        <thead>
+          <tr>
+            <th>Blog</th>
+            <th>Author</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sortedBlogs.map((blog) => (
+            <tr key={blog.id}>
+              <td>
+                <Link to={`/blogs/${blog.id}`}>{blog.title}</Link>
+              </td>
+              <td>{blog.author}</td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+    </>
   )
 }
 

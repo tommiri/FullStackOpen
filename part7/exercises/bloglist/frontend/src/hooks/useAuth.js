@@ -2,10 +2,10 @@ import { useDispatch } from 'react-redux'
 
 import loginService from '../services/login'
 import blogService from '../services/blogs'
-import { setUser, clearUser } from '../reducers/userReducer'
+import { setUser, clearUser } from '../reducers/authReducer'
 import { useNotify } from './useNotify'
 
-export const useAuth = () => {
+const useAuth = () => {
   const dispatch = useDispatch()
   const notify = useNotify()
 
@@ -37,3 +37,5 @@ export const useAuth = () => {
     },
   }
 }
+
+export default useAuth

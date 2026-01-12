@@ -1,6 +1,7 @@
 import { useDispatch, useSelector } from 'react-redux'
 
 import { useNotify } from './useNotify'
+import useUsers from './useUsers'
 import {
   setBlogs,
   createBlog,
@@ -9,9 +10,10 @@ import {
 } from '../reducers/blogReducer'
 import blogService from '../services/blogs'
 
-export const useBlogs = () => {
+const useBlogs = () => {
   const dispatch = useDispatch()
   const notify = useNotify()
+  const { initializeUsers } = useUsers()
   const user = useSelector(({ user }) => user)
 
   return {
@@ -27,6 +29,7 @@ export const useBlogs = () => {
       try {
         const newBlog = await blogService.create(blogData)
         dispatch(createBlog({ ...newBlog, user: user }))
+        await initializeUsers()
         notify(`New blog added: "${blogData.title}" by ${blogData.author}`)
       } catch {
         notify("Error: couldn't create new blogpost", { isError: true })
@@ -49,10 +52,21 @@ export const useBlogs = () => {
       try {
         await blogService.remove(blogData)
         dispatch(deleteBlog(blogData))
+        await initializeUsers()
         notify(`Successfully deleted "${blogData.title}"`)
       } catch {
         notify("Error: couldn't delete blogpost", { isError: true })
       }
     },
+    commentBlog: async (blog, content) => {
+      try {
+        const updatedBlog = await blogService.comment(blog.id, { content })
+        dispatch(updateBlog({ ...updatedBlog, user: blog.user }))
+      } catch {
+        notify("Error: couldn't post comment", { isError: true })
+      }
+    },
   }
 }
+
+export default useBlogs

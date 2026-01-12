@@ -1,14 +1,19 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
-import { useAuth } from '../hooks/useAuth'
+import useAuth from '../hooks/useAuth'
+
+import { Form, Button, FloatingLabel } from 'react-bootstrap'
 
 const LoginForm = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
   const { login, restoreUser } = useAuth()
+  const navigate = useNavigate()
 
-  useEffect(restoreUser, [restoreUser])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(restoreUser, [])
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -16,32 +21,35 @@ const LoginForm = () => {
     await login({ username, password })
     setUsername('')
     setPassword('')
+    navigate('/')
   }
 
   return (
-    <form onSubmit={handleLogin}>
-      <div>
-        <label>
-          Username
-          <input
+    <>
+      <h1 className="mb-3">Sign in</h1>
+
+      <Form onSubmit={handleLogin}>
+        <FloatingLabel label="Username" className="mb-3">
+          <Form.Control
             type="text"
+            name="username"
             value={username}
             onChange={({ target }) => setUsername(target.value)}
           />
-        </label>
-      </div>
-      <div>
-        <label>
-          Password
-          <input
+        </FloatingLabel>
+        <FloatingLabel label="Password" className="mb-3">
+          <Form.Control
             type="password"
+            name="password"
             value={password}
             onChange={({ target }) => setPassword(target.value)}
           />
-        </label>
-      </div>
-      <button type="submit">LOGIN</button>
-    </form>
+        </FloatingLabel>
+        <Button variant="primary" type="submit">
+          Sign in
+        </Button>
+      </Form>
+    </>
   )
 }
 
