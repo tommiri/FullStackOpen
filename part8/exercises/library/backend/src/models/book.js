@@ -9,12 +9,21 @@ const schema = new mongoose.Schema({
   },
   published: {
     type: Number,
+    required: true,
   },
   author: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Author',
+    required: true,
   },
-  genres: [{ type: String }],
+  genres: {
+    type: [String],
+    required: true,
+    validate: {
+      validator: (v) => v && v.length > 0,
+      message: 'At least one genre is required',
+    },
+  },
 })
 
 module.exports = mongoose.model('Book', schema)

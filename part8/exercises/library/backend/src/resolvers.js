@@ -55,15 +55,12 @@ const resolvers = {
       const bookExists = await Book.exists({ title: args.title })
 
       if (bookExists) {
-        throw new GraphQLError(
-          `Book already in database: ${args.title} by ${args.author}`,
-          {
-            extensions: {
-              code: 'BAD_USER_INPUT',
-              invalidArgs: args.title,
-            },
-          }
-        )
+        throw new GraphQLError(`Book already in database: "${args.title}"`, {
+          extensions: {
+            code: 'BAD_USER_INPUT',
+            invalidArgs: args.title,
+          },
+        })
       }
 
       try {

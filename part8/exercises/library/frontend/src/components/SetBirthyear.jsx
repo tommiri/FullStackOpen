@@ -35,6 +35,8 @@ const SetBirthyear = ({ setError, selectOptions }) => {
             name
             <Select
               name="name"
+              isClearable
+              placeholder="Select author..."
               options={selectOptions}
               value={
                 selectOptions.find((option) => option.value === name) || null
@@ -54,7 +56,7 @@ const SetBirthyear = ({ setError, selectOptions }) => {
         </div>
         <div>
           <label>
-            born
+            birthdate{' '}
             <input
               type="text"
               value={born}

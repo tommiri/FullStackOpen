@@ -4,7 +4,7 @@ import { ALL_AUTHORS } from '../queries'
 
 import SetBirthyear from './SetBirthyear'
 
-const Authors = ({ setError }) => {
+const Authors = ({ token, setError }) => {
   const result = useQuery(ALL_AUTHORS)
 
   if (result.loading) {
@@ -25,8 +25,8 @@ const Authors = ({ setError }) => {
       <h2>authors</h2>
       <table>
         <tbody>
-          <tr>
-            <th></th>
+          <tr style={{ textAlign: 'left' }}>
+            <th>name</th>
             <th>born</th>
             <th>books</th>
           </tr>
@@ -39,8 +39,10 @@ const Authors = ({ setError }) => {
           ))}
         </tbody>
       </table>
-      {/* Prop drilling :( */}
-      <SetBirthyear setError={setError} selectOptions={selectOptions} />{' '}
+      {token && (
+        /* Prop drilling :( */
+        <SetBirthyear setError={setError} selectOptions={selectOptions} />
+      )}
     </>
   )
 }

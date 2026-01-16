@@ -1,36 +1,60 @@
 import { useQuery } from '@apollo/client/react'
+import { useState } from 'react'
+import Select from 'react-select'
 
-import { ALL_BOOKS } from '../queries'
+import { FIND_BOOK } from '../queries'
 
-const Books = () => {
-  const result = useQuery(ALL_BOOKS)
+import BooksTable from './BooksTable'
 
-  if (result.loading) {
-    return <div>loading...</div>
-  }
+const Books = ({ allBooks }) => {
+  const [genre, setGenre] = useState('')
 
-  const books = result.data.allBooks
+  const filteredBooksResult = useQuery(FIND_BOOK, {
+    variables: { genre },
+    skip: !genre,
+  })
+
+  const books = genre ? filteredBooksResult.data?.allBooks : allBooks
+
+  const uniqueGenres = [...new Set(allBooks.flatMap((b) => b.genres))]
+
+  const selectOptions = uniqueGenres.map((g) => ({ label: g, value: g }))
 
   return (
     <>
       <h2>books</h2>
 
-      <table>
-        <tbody>
-          <tr>
-            <th></th>
-            <th>author</th>
-            <th>published</th>
-          </tr>
-          {books.map((a) => (
-            <tr key={a.id}>
-              <td>{a.title}</td>
-              <td>{a.author}</td>
-              <td>{a.published}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {genre ? (
+        <div>
+          showing books with genre <strong>{genre}</strong>
+        </div>
+      ) : (
+        <div>
+          showing <strong>all</strong> books
+        </div>
+      )}
+
+      {!filteredBooksResult.loading ? (
+        <BooksTable books={books} />
+      ) : (
+        <div>loading...</div>
+      )}
+
+      <Select
+        name="genre"
+        isClearable
+        placeholder="Filter by genre..."
+        options={selectOptions}
+        value={selectOptions.find((option) => option.value === genre) || null}
+        onChange={(selectedOption) => setGenre(selectedOption?.value || '')}
+        styles={{
+          container: (base) => ({
+            ...base,
+            maxWidth: '300px',
+            marginBottom: '0.5em',
+          }),
+        }}
+      />
     </>
   )
 }
