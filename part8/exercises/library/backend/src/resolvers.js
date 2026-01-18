@@ -1,9 +1,12 @@
 const { GraphQLError } = require('graphql')
+const { PubSub } = require('graphql-subscriptions')
 const jwt = require('jsonwebtoken')
 
 const Author = require('./models/author')
 const Book = require('./models/book')
 const User = require('./models/user')
+
+const pubsub = new PubSub()
 
 const resolvers = {
   Query: {
@@ -29,7 +32,9 @@ const resolvers = {
       return Book.find(filter).populate('author')
     },
 
-    allAuthors: async () => Author.find({}),
+    allAuthors: async () => {
+      return Author.find({})
+    },
 
     me: (_root, _args, context) => {
       return context.currentUser
@@ -37,7 +42,13 @@ const resolvers = {
   },
 
   Author: {
-    bookCount: async (author) => Book.countDocuments({ author: author._id }),
+    bookCount: async (author, _args, context) => {
+      if (context && context.bookCountLoader) {
+        return context.bookCountLoader.load(author._id)
+      }
+      // Fallback for subscriptions (no DataLoader in context)
+      return Book.countDocuments({ author: author._id })
+    },
   },
 
   Mutation: {
@@ -81,6 +92,9 @@ const resolvers = {
 
         await book.save()
         await book.populate('author')
+
+        pubsub.publish('BOOK_ADDED', { bookAdded: book })
+
         return book
       } catch (error) {
         throw new GraphQLError(`Saving book failed: ${error.message}`, {
@@ -161,6 +175,12 @@ const resolvers = {
       }
 
       return { value: jwt.sign(userForToken, process.env.JWT_SECRET) }
+    },
+  },
+
+  Subscription: {
+    bookAdded: {
+      subscribe: () => pubsub.asyncIterableIterator('BOOK_ADDED'),
     },
   },
 }

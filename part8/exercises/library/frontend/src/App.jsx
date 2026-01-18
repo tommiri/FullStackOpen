@@ -1,9 +1,13 @@
 import { useState } from 'react'
-import { useApolloClient, useQuery } from '@apollo/client/react'
+import {
+  useApolloClient,
+  useQuery,
+  useSubscription,
+} from '@apollo/client/react'
 
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom'
 
-import { ALL_BOOKS } from './queries'
+import { ALL_BOOKS, BOOK_ADDED } from './queries'
 
 import Navigation from './components/Navigation'
 import Authors from './components/Authors'
@@ -12,6 +16,7 @@ import NewBook from './components/NewBook'
 import Recommended from './components/Recommended'
 import Notify from './components/Notify'
 import LoginForm from './components/LoginForm'
+import { addBookToCache } from './utils/apolloCache'
 
 const ProtectedRoute = ({ token, redirectPath = '/login' }) => {
   if (!token) {
@@ -28,6 +33,14 @@ const App = () => {
   const client = useApolloClient()
 
   const result = useQuery(ALL_BOOKS)
+
+  useSubscription(BOOK_ADDED, {
+    onData: ({ data }) => {
+      const addedBook = data.data.bookAdded
+      notify(`${addedBook.title} added`)
+      addBookToCache(client.cache, addedBook)
+    },
+  })
 
   if (result.loading) {
     return <div>loading...</div>
