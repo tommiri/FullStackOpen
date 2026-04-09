@@ -1,5 +1,13 @@
-import { Gender } from './types';
+import { Gender, Entry, Diagnosis } from './types';
 import z from 'zod';
+
+// export const newEntrySchema = z.object({
+//   id: z.string(),
+//   description: z.string(),
+//   date: z.string(),
+//   specialist: z.string(),
+//   diagnosisCodes: z.array(Diagnosis),
+// });
 
 export const newPatientSchema = z.object({
   name: z.string(),
@@ -7,4 +15,5 @@ export const newPatientSchema = z.object({
   ssn: z.string(),
   gender: z.enum(Gender),
   occupation: z.string(),
+  entries: z.array(z.object(Entry)),
 });
