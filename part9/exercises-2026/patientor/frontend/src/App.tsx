@@ -37,8 +37,10 @@ const App = () => {
     return diagnoses.find((d) => d.code === code)?.name;
   };
 
+  const allDiagnosisCodes = diagnoses.map((d) => d.code);
+
   return (
-    <DiagnosesContext.Provider value={{ getDiagnosisName }}>
+    <DiagnosesContext.Provider value={{ getDiagnosisName, allDiagnosisCodes }}>
       <div className="App">
         <Router>
           <Container>

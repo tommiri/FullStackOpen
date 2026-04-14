@@ -4,6 +4,7 @@ import type { Diagnosis } from '../types';
 
 export type DiagnosesContextValue = {
   getDiagnosisName: (code: Diagnosis['code']) => string | undefined;
+  allDiagnosisCodes: Array<Diagnosis['code']>;
 };
 
 const DiagnosesContext = createContext<DiagnosesContextValue | undefined>(

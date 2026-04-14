@@ -1,11 +1,11 @@
-import { Gender, HealthCheckRating } from './types';
+import { Diagnosis, Gender, HealthCheckRating } from './types';
 import z from 'zod';
 
 const baseEntrySchema = z.object({
   id: z.string(),
-  description: z.string(),
-  date: z.string(),
-  specialist: z.string(),
+  description: z.string().nonempty(),
+  date: z.string().nonempty(),
+  specialist: z.string().nonempty(),
   diagnosisCodes: z.array(z.string()).optional(),
 });
 
@@ -16,11 +16,11 @@ const healthCheckEntrySchema = baseEntrySchema.extend({
 
 const occupationalHealthcareEntrySchema = baseEntrySchema.extend({
   type: z.literal('OccupationalHealthcare'),
-  employerName: z.string(),
+  employerName: z.string().nonempty(),
   sickLeave: z
     .object({
-      startDate: z.string(),
-      endDate: z.string(),
+      startDate: z.string().nonempty(),
+      endDate: z.string().nonempty(),
     })
     .optional(),
 });
@@ -28,8 +28,8 @@ const occupationalHealthcareEntrySchema = baseEntrySchema.extend({
 const hospitalEntrySchema = baseEntrySchema.extend({
   type: z.literal('Hospital'),
   discharge: z.object({
-    date: z.string(),
-    criteria: z.string(),
+    date: z.string().nonempty(),
+    criteria: z.string().nonempty(),
   }),
 });
 
@@ -37,6 +37,12 @@ export const entrySchema = z.discriminatedUnion('type', [
   healthCheckEntrySchema,
   occupationalHealthcareEntrySchema,
   hospitalEntrySchema,
+]);
+
+export const newEntrySchema = z.discriminatedUnion('type', [
+  healthCheckEntrySchema.omit({ id: true }).strict(),
+  occupationalHealthcareEntrySchema.omit({ id: true }).strict(),
+  hospitalEntrySchema.omit({ id: true }).strict(),
 ]);
 
 export const newPatientSchema = z.object({
@@ -47,3 +53,13 @@ export const newPatientSchema = z.object({
   occupation: z.string(),
   entries: z.array(entrySchema),
 });
+
+export const parseDiagnosisCodes = (
+  object: unknown
+): Array<Diagnosis['code']> => {
+  if (!object || typeof object !== 'object' || !('diagnosisCodes' in object)) {
+    return [] as Array<Diagnosis['code']>;
+  }
+
+  return object.diagnosisCodes as Array<Diagnosis['code']>;
+};

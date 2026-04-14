@@ -31,7 +31,7 @@ export const BaseEntryDetails = ({
 
         {children}
 
-        {entry.diagnosisCodes && (
+        {entry.diagnosisCodes && entry.diagnosisCodes.length !== 0 && (
           <Card variant="outlined">
             <CardContent>
               <Typography variant="h6">Diagnoses</Typography>
