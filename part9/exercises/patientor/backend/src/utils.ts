@@ -1,73 +1,65 @@
-import { Gender, NewPatient } from './types';
+import { Diagnosis, Gender, HealthCheckRating } from './types';
+import z from 'zod';
 
-const isString = (text: unknown): text is string => {
-  return typeof text === 'string' || text instanceof String;
-};
+const baseEntrySchema = z.object({
+  id: z.string(),
+  description: z.string().nonempty(),
+  date: z.string().nonempty(),
+  specialist: z.string().nonempty(),
+  diagnosisCodes: z.array(z.string()).optional(),
+});
 
-const parseStringProperty = (
-  property: unknown,
-  name: string
-): string => {
-  if (!isString(property)) {
-    throw new Error(`Incorrect or missing ${name}`);
+const healthCheckEntrySchema = baseEntrySchema.extend({
+  type: z.literal('HealthCheck'),
+  healthCheckRating: z.enum(HealthCheckRating),
+});
+
+const occupationalHealthcareEntrySchema = baseEntrySchema.extend({
+  type: z.literal('OccupationalHealthcare'),
+  employerName: z.string().nonempty(),
+  sickLeave: z
+    .object({
+      startDate: z.string().nonempty(),
+      endDate: z.string().nonempty(),
+    })
+    .optional(),
+});
+
+const hospitalEntrySchema = baseEntrySchema.extend({
+  type: z.literal('Hospital'),
+  discharge: z.object({
+    date: z.string().nonempty(),
+    criteria: z.string().nonempty(),
+  }),
+});
+
+export const entrySchema = z.discriminatedUnion('type', [
+  healthCheckEntrySchema,
+  occupationalHealthcareEntrySchema,
+  hospitalEntrySchema,
+]);
+
+export const newEntrySchema = z.discriminatedUnion('type', [
+  healthCheckEntrySchema.omit({ id: true }).strict(),
+  occupationalHealthcareEntrySchema.omit({ id: true }).strict(),
+  hospitalEntrySchema.omit({ id: true }).strict(),
+]);
+
+export const newPatientSchema = z.object({
+  name: z.string(),
+  dateOfBirth: z.iso.date(),
+  ssn: z.string(),
+  gender: z.enum(Gender),
+  occupation: z.string(),
+  entries: z.array(entrySchema),
+});
+
+export const parseDiagnosisCodes = (
+  object: unknown
+): Array<Diagnosis['code']> => {
+  if (!object || typeof object !== 'object' || !('diagnosisCodes' in object)) {
+    return [] as Array<Diagnosis['code']>;
   }
 
-  return property;
+  return object.diagnosisCodes as Array<Diagnosis['code']>;
 };
-
-const isDate = (date: string): boolean => {
-  return Boolean(Date.parse(date));
-};
-
-const parseDate = (date: unknown): string => {
-  if (!isString(date) || !isDate(date)) {
-    throw new Error('Incorrect or missing date: ' + date);
-  }
-
-  return date;
-};
-
-const isGender = (param: string): param is Gender => {
-  return Object.values(Gender)
-    .map((v) => v.toString())
-    .includes(param);
-};
-
-const parseGender = (gender: unknown): Gender => {
-  if (!isString(gender) || !isGender(gender)) {
-    throw new Error('Incorrect or missing gender: ' + gender);
-  }
-
-  return gender;
-};
-
-const toNewPatient = (object: unknown): NewPatient => {
-  if (!object || typeof object !== 'object') {
-    throw new Error('Incorrect or missing data');
-  }
-
-  if (
-    'name' in object &&
-    'dateOfBirth' in object &&
-    'ssn' in object &&
-    'gender' in object &&
-    'occupation' in object
-  ) {
-    const newPatient: NewPatient = {
-      name: parseStringProperty(object.name, 'name'),
-      dateOfBirth: parseDate(object.dateOfBirth),
-      ssn: parseStringProperty(object.ssn, 'ssn'),
-      gender: parseGender(object.gender),
-      occupation: parseStringProperty(
-        object.occupation,
-        'occupation'
-      ),
-      entries: [], // add empty array of entries
-    };
-    return newPatient;
-  }
-
-  throw new Error('Incorrect data: some fields are missing');
-};
-
-export default toNewPatient;
